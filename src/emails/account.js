@@ -3,6 +3,8 @@ const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const sendWelcomeEmail = (email, name) => {
+    console.log('sending an email');
+    
     sgMail
         .send({
             to: email,
@@ -10,6 +12,8 @@ const sendWelcomeEmail = (email, name) => {
             subject: "Bienvenue dans notre communauté ;)",
             text: `Bonjour ${name}, Toutes nos féliitations. Ton compte a bien été créé`
         })
+        console.log('email sent');
+    
 }
 
 const sendCancelationEmail = (email, name) => {
