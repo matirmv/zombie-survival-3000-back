@@ -4,8 +4,35 @@
   "description": "Backend of zombie survival 3000",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "env-cmd -r ./config/.env-cmdrc.json -e dev nodemon src/index.js",
+    "start": "node src/index.js",
+    "test": "env-cmd -r ./config/.env-cmdrc.json -e test jest --watch --runInBand --detectOpenHandles",
+    "local-mongo": "start mongod --dbpath='C:/Users/ferra/mongodb-data'"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "roots": [
+      "./tests/"
+    ]
   },
   "author": "Matthias FERRAINA",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@sendgrid/mail": "^7.0.0",
+    "bcrypt": "^4.0.1",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongodb": "^3.5.5",
+    "mongoose": "^5.9.7",
+    "multer": "^1.4.2",
+    "sharp": "^0.25.2",
+    "swagger-ui-express": "^4.1.4",
+    "validator": "^13.0.0"
+  },
+  "devDependencies": {
+    "env-cmd": "^10.1.0",
+    "jest": "^25.2.7",
+    "nodemon": "^2.0.2",
+    "supertest": "^4.0.2"
+  }
 }
