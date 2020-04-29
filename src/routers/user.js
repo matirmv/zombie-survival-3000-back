@@ -3,7 +3,7 @@ const auth = require("../middleware/auth");
 const User = require("../models/user");
 const multer = require("multer");
 const sharp = require("sharp");
-const { sendWelcomeEmail, sendCancelationEmail } = require('../emails/account')
+const { sendActivationEmail, sendCancelationEmail } = require('../emails/account')
 const router = new express.Router();
 
 router.post("/users", async (req, res) => {
@@ -11,9 +11,11 @@ router.post("/users", async (req, res) => {
 
     try {
         await user.save();
-        sendActivationEmail(user.email, user.name)
-        const token = await user.generateAuthToken();
-        res.status(201).send({ user, token });
+        const activationToken = user.generateActivationToken();
+        console.log(activationToken);
+        
+        sendActivationEmail(user.email, user.name,activationToken)
+        res.status(201).send(user);
     } catch (error) {
         res.status(400).send(error);
     }
@@ -25,14 +27,33 @@ router.post("/users/login", async (req, res) => {
             req.body.email,
             req.body.password
         );
+
+        if (!user.activated) {
+            throw new Error("Le compte du joueur doit être activé pour pouvoir se connecter");
+        }
+
         const token = await user.generateAuthToken();
 
-        res.send({ user, token });
+        res.status(200).send({ user, token });
     } catch (error) {
         res.status(400).send(error.message);
     }
 });
 
+router.post("/users/activate", async (req, res) => {
+
+    try {
+        const decodedToken = User.verifyActivationToken(req.body.token)
+        const user = await User.findById(decodedToken._id)
+        const activatedUser = await user.activateUser();
+        const token = await user.generateAuthToken();
+        res.status(200).send({ activatedUser, token });
+    } catch (error) {        
+        res.status(400).send(error)
+    }
+
+
+})
 router.post("/users/logout", auth, async (req, res) => {
     try {
         req.user.tokens = req.user.tokens.filter(

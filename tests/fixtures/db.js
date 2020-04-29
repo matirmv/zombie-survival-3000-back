@@ -2,24 +2,43 @@ const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
 const User = require('../../src/models/user')
 
-const userOneId = new mongoose.Types.ObjectId();
-const userOne = {
-    _id: userOneId,
+const userActivatedId = new mongoose.Types.ObjectId();
+const userActivated = {
+    _id: userActivatedId,
     name: "test",
     email: "test.test@gmail.com",
     password: "Matthias123",
     tokens: [{
-        token: jwt.sign({ _id: userOneId }, process.env.JWT_SECRET),
-    }, ],
+        token: jwt.sign({ _id: userActivatedId }, process.env.JWT_SECRET),
+    },],
+    activated: true
 };
 
-const setupDatabase = async() => {
+const userUnactivatedId = new mongoose.Types.ObjectId();
+const userUnactivated = {
+    _id: userUnactivatedId,
+    name: "test",
+    email: "test.unactivated@gmail.com",
+    password: "Matthias123",
+    tokens: [{
+        token: jwt.sign({ _id: userUnactivatedId }, process.env.JWT_SECRET),
+    },],
+    activated: false
+};
+
+const activationTokenForUnactivated=jwt.sign({ _id: userUnactivatedId }, process.env.JWT_SECRET_EMAIL)
+
+const setupDatabase = async () => {
     await User.deleteMany();
-    await new User(userOne).save();
+    await new User(userActivated).save();
+    await new User(userUnactivated).save();
 }
 
 module.exports = {
-    userOneId,
-    userOne,
+    userActivatedId,
+    userActivated,
+    userUnactivatedId,
+    userUnactivated,
+    activationTokenForUnactivated,
     setupDatabase
 }

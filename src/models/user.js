@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
-        minlength: 7,
+        minlength: 8,
         validate(value) {
             if (value.toLowerCase().includes("password")) {
                 throw new Error("Password field should not contain password string.");
@@ -49,6 +49,11 @@ const userSchema = new mongoose.Schema({
     }],
     avatar: {
         type: Buffer
+    },
+    activated: {
+        type: Boolean,
+        default: false,
+        required: true
     }
 }, { timestamps: true });
 
@@ -58,7 +63,7 @@ userSchema.virtual("tasks", {
     foreignField: "owner"
 });
 
-userSchema.methods.toJSON = function() {
+userSchema.methods.toJSON = function () {
     const user = this;
 
     const userObject = user.toObject();
@@ -69,7 +74,15 @@ userSchema.methods.toJSON = function() {
 
     return userObject;
 };
-userSchema.methods.generateAuthToken = async function() {
+
+userSchema.methods.generateActivationToken = function (){
+    const user = this
+    const activationToken = jwt.sign({_id:user._id.toString()},process.env.JWT_SECRET_EMAIL)
+
+    return activationToken
+}
+
+userSchema.methods.generateAuthToken = async function () {
     const user = this;
     const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET);
 
@@ -79,7 +92,21 @@ userSchema.methods.generateAuthToken = async function() {
     return token;
 };
 
-userSchema.statics.findByCredentials = async(email, password) => {
+userSchema.methods.activateUser = async function(){
+    const user = this;
+    user.activated=true;
+    await user.save();
+    return user
+}
+
+userSchema.statics.verifyActivationToken = function (activationToken) {
+    const verifiedToken = jwt.verify(activationToken, process.env.JWT_SECRET_EMAIL); 
+    console.log(verifiedToken);
+       
+    return verifiedToken
+}
+
+userSchema.statics.findByCredentials = async (email, password) => {
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -95,7 +122,7 @@ userSchema.statics.findByCredentials = async(email, password) => {
     return user;
 };
 
-userSchema.pre("save", async function(next) {
+userSchema.pre("save", async function (next) {
     const user = this;
 
     if (user.isModified("password")) {
@@ -105,7 +132,7 @@ userSchema.pre("save", async function(next) {
     next();
 });
 
-userSchema.pre("remove", async function(next) {
+userSchema.pre("remove", async function (next) {
     const user = this;
 
     await Task.deleteMany({ owner: user._id });

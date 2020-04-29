@@ -2,21 +2,18 @@ const sgMail = require("@sendgrid/mail");
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const sendActivationEmail = (email, name) => {
-    console.log('sending an email');
-    
+const sendActivationEmail = (email, name, activationToken) => {    
     sgMail
         .send({
             to: email,
             from: "ferraina.matthias@gmail.com",
             subject: "Tu ne le sais pas encore, mais tu vas en baver..",
-            text: `<p>Bonjour ${name}, Toutes nos féliitations. Tu as déclenché la fin du monde !</p>
-            <p>Nous voulons être sûr que c'est bien toi le responsable de ce chaos clique ici pour nous confirmer ton entière responsabilité :</p>
+            html: `<p>Bonjour ${name}, Toutes nos féliitations. Tu as déclenché la fin du monde !</p>
+            <p>Nous voulons être sûrs que c'est bien toi le responsable de cet infâme chaos. Clique sur le lien pour nous confirmer ton entière responsabilité :</p><br>
+            <a href="${process.env.FRONT_URL}?activationToken=${activationToken}">Je confirme que c'est moi qui suis à l'origine de tout ça. Qu'est ce que vous allez faire bande de moulasses ?</a>
             
             `
-        })
-        console.log('email sent');
-    
+        })    
 }
 
 const sendCancelationEmail = (email, name) => {
@@ -30,6 +27,6 @@ const sendCancelationEmail = (email, name) => {
 }
 
 module.exports = {
-    sendWelcomeEmail,
+    sendActivationEmail,
     sendCancelationEmail
 }
