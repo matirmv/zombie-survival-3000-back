@@ -100,9 +100,7 @@ userSchema.methods.activateUser = async function(){
 }
 
 userSchema.statics.verifyActivationToken = function (activationToken) {
-    const verifiedToken = jwt.verify(activationToken, process.env.JWT_SECRET_EMAIL); 
-    console.log(verifiedToken);
-       
+    const verifiedToken = jwt.verify(activationToken, process.env.JWT_SECRET_EMAIL);        
     return verifiedToken
 }
 
