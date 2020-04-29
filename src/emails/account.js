@@ -2,15 +2,18 @@ const sgMail = require("@sendgrid/mail");
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const sendWelcomeEmail = (email, name) => {
+const sendActivationEmail = (email, name) => {
     console.log('sending an email');
     
     sgMail
         .send({
             to: email,
             from: "ferraina.matthias@gmail.com",
-            subject: "Bienvenue dans notre communauté ;)",
-            text: `Bonjour ${name}, Toutes nos féliitations. Ton compte a bien été créé`
+            subject: "Tu ne le sais pas encore, mais tu vas en baver..",
+            text: `<p>Bonjour ${name}, Toutes nos féliitations. Tu as déclenché la fin du monde !</p>
+            <p>Nous voulons être sûr que c'est bien toi le responsable de ce chaos clique ici pour nous confirmer ton entière responsabilité :</p>
+            
+            `
         })
         console.log('email sent');
     
