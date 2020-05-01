@@ -3,7 +3,7 @@ const validator = require("validator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Task = require("../models/task");
-const {error} =require ('../shared/errors')
+const { error } = require('../shared/errors')
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -76,9 +76,9 @@ userSchema.methods.toJSON = function () {
     return userObject;
 };
 
-userSchema.methods.generateActivationToken = function (){
+userSchema.methods.generateActivationToken = function () {
     const user = this
-    const activationToken = jwt.sign({_id:user._id.toString()},process.env.JWT_SECRET_EMAIL)
+    const activationToken = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET_EMAIL)
 
     return activationToken
 }
@@ -93,21 +93,24 @@ userSchema.methods.generateAuthToken = async function () {
     return token;
 };
 
-userSchema.methods.activateUser = async function(){
+userSchema.methods.activateUser = async function () {
     const user = this;
-    user.activated=true;
+    user.activated = true;
     await user.save();
     return user
 }
 
 userSchema.statics.verifyActivationToken = function (activationToken) {
-    const verifiedToken = jwt.verify(activationToken, process.env.JWT_SECRET_EMAIL);        
+    const verifiedToken = jwt.verify(activationToken, process.env.JWT_SECRET_EMAIL);
     return verifiedToken
 }
 
 userSchema.statics.findByCredentials = async (email, password) => {
     const user = await User.findOne({ email });
-    const isMatch = await bcrypt.compare(password, user.password);
+    let isMatch = false;
+    if (user) {
+        isMatch = await bcrypt.compare(password, user.password);
+    }
 
     if (!user || !isMatch) {
         throw new Error(error.USER_INCORRECT_CREDENTIALS);

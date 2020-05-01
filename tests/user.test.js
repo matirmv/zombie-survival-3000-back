@@ -72,6 +72,59 @@ test("Should not login activated user if bad credentials provided", async () => 
     expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
 });
 
+test("Should not login activated user if bad credentials provided (good", async () => {
+    let response;
+    response = await request(app)
+        .post("/users/login")
+        .send({
+            email: "test.activated@gmail.com",
+            password: "Matthias12",
+        })
+        .expect(400);
+
+    expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
+
+    response = await request(app)
+        .post("/users/login")
+        .send({
+            email: "test.activat@gmail.com",
+            password: "Matthias123",
+        })
+        .expect(400);
+
+    expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
+
+    response = await request(app)
+        .post("/users/login")
+        .send({
+            email: "",
+            password: "",
+        })
+        .expect(400);
+
+    expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
+
+    response = await request(app)
+        .post("/users/login")
+        .send({
+            email: "test.activat@gmail.com",
+            password: "",
+        })
+        .expect(400);
+
+    expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
+
+    response = await request(app)
+        .post("/users/login")
+        .send({
+            email: "test.activat@gmail.com",
+            password: "",
+        })
+        .expect(400);
+
+    expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
+});
+
 test("Should not login unactivated user", async () => {
     const response = await request(app)
         .post("/users/login")
@@ -79,7 +132,7 @@ test("Should not login unactivated user", async () => {
             email: "test.unactivated@gmail.com",
             password: "Matthias123",
         }).expect(400)
-        
+
     expect(response.body.error).toEqual(error.USER_NOT_ACTIVATED)
 });
 
