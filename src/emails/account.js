@@ -10,7 +10,7 @@ const sendActivationEmail = (email, name, activationToken) => {
             subject: "Tu ne le sais pas encore, mais tu vas en baver..",
             html: `<p>Bonjour ${name}, Toutes nos féliitations. Tu as déclenché la fin du monde !</p>
             <p>Nous voulons être sûrs que c'est bien toi le responsable de cet infâme chaos. Clique sur le lien pour nous confirmer ton entière responsabilité :</p><br>
-            <a href="${process.env.FRONT_URL}?activationToken=${activationToken}">Je confirme que c'est moi qui suis à l'origine de tout ça. Qu'est ce que vous allez faire bande de moulasses ?</a>
+            <a href="${process.env.FRONT_URL}/account/activate?activationToken=${activationToken}">Je confirme que c'est moi qui suis à l'origine de tout ça. Qu'est ce que vous allez faire bande de moulasses ?</a>
             
             `
         })    

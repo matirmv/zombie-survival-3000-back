@@ -27,7 +27,8 @@ router.post("/users/login", async (req, res) => {
         );
 
         if (!user.activated) {
-            throw new Error("Le compte du joueur doit être activé pour pouvoir se connecter");
+            throw new Error("Le compte du joueur doit être activé pour voir se connecter.");
+            // zdqdzq
         }
 
         const token = await user.generateAuthToken();

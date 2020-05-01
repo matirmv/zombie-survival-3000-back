@@ -6,14 +6,11 @@
   "scripts": {
     "dev": "env-cmd -r ./config/.env-cmdrc.json -e dev nodemon src/index.js",
     "start": "node src/index.js",
-    "test": "env-cmd -r ./config/.env-cmdrc.json -e test jest --watchAll --runInBand --detectOpenHandles",
+    "test": "env-cmd -r ./config/.env-cmdrc.json -e test jest --watchAll --runInBand",
     "local-mongo": "start mongod --dbpath='C:/Users/ferra/mongodb-data'"
   },
   "jest": {
-    "testEnvironment": "node",
-    "roots": [
-      "./tests/"
-    ]
+    "testEnvironment": "node"
   },
   "author": "Matthias FERRAINA",
   "license": "ISC",
