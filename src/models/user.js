@@ -3,6 +3,7 @@ const validator = require("validator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Task = require("../models/task");
+const {error} =require ('../shared/errors')
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -106,15 +107,10 @@ userSchema.statics.verifyActivationToken = function (activationToken) {
 
 userSchema.statics.findByCredentials = async (email, password) => {
     const user = await User.findOne({ email });
-
-    if (!user) {
-        throw new Error("Unable to login");
-    }
-
     const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!isMatch) {
-        throw new Error("Unable to login");
+    if (!user || !isMatch) {
+        throw new Error(error.USER_INCORRECT_CREDENTIALS);
     }
 
     return user;

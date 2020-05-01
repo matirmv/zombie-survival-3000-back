@@ -1,7 +1,8 @@
 const request = require("supertest");
 const app = require("../src/app");
 const User = require("../src/models/user");
-const { userActivatedId, userActivated, userUnactivated, userUnactivatedId, activationTokenForUnactivated, setupDatabase } = require("./fixtures/db");
+const { userActivatedId, userActivated, activationTokenForUnactivated, setupDatabase } = require("./fixtures/db");
+const { error } = require("../src/shared/errors")
 
 beforeEach(setupDatabase);
 
@@ -50,7 +51,7 @@ test("Should login activated user", async () => {
     const response = await request(app)
         .post("/users/login")
         .send({
-            email: "test.test@gmail.com",
+            email: "test.activated@gmail.com",
             password: "Matthias123",
         })
         .expect(200);
@@ -59,14 +60,27 @@ test("Should login activated user", async () => {
     expect(response.body.token).toBe(user.tokens[1].token);
 });
 
+test("Should not login activated user if bad credentials provided", async () => {
+    const response = await request(app)
+        .post("/users/login")
+        .send({
+            email: "test.activated@gmail.com",
+            password: "Matthias12",
+        })
+        .expect(400);
+
+    expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
+});
+
 test("Should not login unactivated user", async () => {
-    await request(app)
+    const response = await request(app)
         .post("/users/login")
         .send({
             email: "test.unactivated@gmail.com",
             password: "Matthias123",
-        })
-
+        }).expect(400)
+        
+    expect(response.body.error).toEqual(error.USER_NOT_ACTIVATED)
 });
 
 test("should login unactivated user after activation", async () => {

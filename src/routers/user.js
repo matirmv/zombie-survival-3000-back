@@ -5,14 +5,15 @@ const multer = require("multer");
 const sharp = require("sharp");
 const { sendActivationEmail, sendCancelationEmail } = require('../emails/account')
 const router = new express.Router();
+const {error} = require('../shared/errors')
 
 router.post("/users", async (req, res) => {
     const user = new User(req.body);
 
     try {
         await user.save();
-        const activationToken = user.generateActivationToken();        
-        sendActivationEmail(user.email, user.name,activationToken)
+        const activationToken = user.generateActivationToken();
+        sendActivationEmail(user.email, user.name, activationToken)
         res.status(201).send(user);
     } catch (error) {
         res.status(400).send(error);
@@ -27,15 +28,14 @@ router.post("/users/login", async (req, res) => {
         );
 
         if (!user.activated) {
-            throw new Error("Le compte du joueur doit être activé pour voir se connecter.");
-            // zdqdzq
+            throw new Error(error.USER_NOT_ACTIVATED);
         }
 
         const token = await user.generateAuthToken();
 
         res.status(200).send({ user, token });
     } catch (error) {
-        res.status(400).send(error.message);
+        res.status(400).send({error:error.message});
     }
 });
 
@@ -47,7 +47,7 @@ router.post("/users/activate", async (req, res) => {
         const activatedUser = await user.activateUser();
         const token = await user.generateAuthToken();
         res.status(200).send({ activatedUser, token });
-    } catch (error) {        
+    } catch (error) {
         res.status(400).send(error)
     }
 
