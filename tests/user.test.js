@@ -74,55 +74,22 @@ test("Should not login activated user if bad credentials provided", async () => 
 
 test("Should not login activated user if bad credentials provided (good", async () => {
     let response;
-    response = await request(app)
-        .post("/users/login")
-        .send({
-            email: "test.activated@gmail.com",
-            password: "Matthias12",
-        })
-        .expect(400);
 
+    response = await userLoginShouldFail('test.activat@gmail.com', "Matthias12")
     expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
 
-    response = await request(app)
-        .post("/users/login")
-        .send({
-            email: "test.activat@gmail.com",
-            password: "Matthias123",
-        })
-        .expect(400);
-
+    response = await userLoginShouldFail('test.activat@gmail.com', "Matthias123")
     expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
 
-    response = await request(app)
-        .post("/users/login")
-        .send({
-            email: "",
-            password: "",
-        })
-        .expect(400);
-
+    response = await userLoginShouldFail("", "")
     expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
 
-    response = await request(app)
-        .post("/users/login")
-        .send({
-            email: "test.activat@gmail.com",
-            password: "",
-        })
-        .expect(400);
-
+    response = await userLoginShouldFail("test.activat@gmail.com", "")
     expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
 
-    response = await request(app)
-        .post("/users/login")
-        .send({
-            email: "test.activat@gmail.com",
-            password: "",
-        })
-        .expect(400);
-
+    response = await userLoginShouldFail("test.activat@gmail.com", "")
     expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
+
 });
 
 test("Should not login unactivated user", async () => {
@@ -217,3 +184,14 @@ test("Should not update username", async () => {
         })
         .expect(400);
 });
+
+// Functions to help redundant testing
+async function userLoginShouldFail(email, password) {
+    return await request(app)
+        .post("/users/login")
+        .send({
+            email,
+            password
+        })
+        .expect(400);
+}
