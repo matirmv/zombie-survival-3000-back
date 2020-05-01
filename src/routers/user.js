@@ -13,7 +13,7 @@ router.post("/users", async (req, res) => {
     try {
         await user.save();
         const activationToken = user.generateActivationToken();
-        sendActivationEmail(user.email, user.name, activationToken)
+        await sendActivationEmail(user.email, user.name, activationToken)
         res.status(201).send(user);
     } catch (error) {
         res.status(400).send(error);

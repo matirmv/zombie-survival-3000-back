@@ -2,8 +2,8 @@ const sgMail = require("@sendgrid/mail");
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const sendActivationEmail = (email, name, activationToken) => {    
-    sgMail
+const sendActivationEmail = async (email, name, activationToken) => {    
+    await sgMail
         .send({
             to: email,
             from: "zs3000team@gmail.com",
