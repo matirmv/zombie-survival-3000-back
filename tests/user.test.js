@@ -1,10 +1,13 @@
 const request = require("supertest");
 const app = require("../src/app");
 const User = require("../src/models/user");
-const { userActivatedId, userActivated, activationTokenForUnactivated, setupDatabase } = require("./fixtures/db");
+const jwt = require('jsonwebtoken')
+const { userActivatedId, userActivated, activationTokenForUnactivated, setupDatabase, expiredActivationTokenForUnactivated } = require("./fixtures/db");
 const { error } = require("../src/shared/errors")
+const  ResourceNotFoundError = require("../src/shared/ResourceNotFoundError")
 
 beforeEach(setupDatabase);
+
 
 test("Should signup a new user", async () => {
     const response = await request(app)
@@ -31,6 +34,7 @@ test("Should signup a new user", async () => {
     expect(user.password).not.toBe("Matthias123");
 });
 
+
 test('Signup user unactivated should not retrieve information', async () => {
     await request(app)
         .post("/users")
@@ -46,7 +50,6 @@ test('Signup user unactivated should not retrieve information', async () => {
 })
 
 
-
 test("Should login activated user", async () => {
     const response = await request(app)
         .post("/users/login")
@@ -60,6 +63,7 @@ test("Should login activated user", async () => {
     expect(response.body.token).toBe(user.tokens[1].token);
 });
 
+
 test("Should not login activated user if bad credentials provided", async () => {
     const response = await request(app)
         .post("/users/login")
@@ -71,6 +75,7 @@ test("Should not login activated user if bad credentials provided", async () => 
 
     expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
 });
+
 
 test("Should not login activated user if bad credentials provided (good", async () => {
     let response;
@@ -92,6 +97,7 @@ test("Should not login activated user if bad credentials provided (good", async 
 
 });
 
+
 test("Should not login unactivated user", async () => {
     const response = await request(app)
         .post("/users/login")
@@ -102,6 +108,26 @@ test("Should not login unactivated user", async () => {
 
     expect(response.body.error).toEqual(error.USER_NOT_ACTIVATED)
 });
+
+
+test('should not activate user clicking on activation link 24 hours after sending', async () => {
+
+    const response = await request(app).post('/users/activate').send({ token: expiredActivationTokenForUnactivated })
+        .expect(400)
+
+    expect(response.body.type).toEqual('USER_ACTIVATION_TOKEN_EXPIRED')
+
+})
+
+test('should not activate user clicking with an invalid activation token', async () => {
+
+    const response = await request(app).post('/users/activate').send({ token: "eyJhbGciOiJIUzIInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZWFlYjM0MDEwZjRmNTQ5OTRiZWU5NWIiLCJpYXQiOjE1ODg1MDc0NTYsImV4cCI6MTU4ODUwNzQ2Nn0.iUVrNrDiKMQ_LDUQHaU0wcdlbCGj4JmleKwmTGg1i-0" })
+        .expect(400)
+
+    expect(response.body.type).toEqual('USER_TOKEN_ERROR')
+
+})
+
 
 test("should login unactivated user after activation", async () => {
     await request(app).post('/users/activate').send({
@@ -114,6 +140,20 @@ test("should login unactivated user after activation", async () => {
     }).expect(200)
 })
 
+test("should send an activation for valid email existing in db", async () => {
+    await request(app).post('/users/sendActivationEmail').send({ email: 'test.unactivated@gmail.com' }).expect(200)
+})
+
+test("should not send an activation for valid email not existing in db", async () => {
+    const response = await request(app).post('/users/sendActivationEmail').send({ email: 'test.unctivated@gmail.com' }).expect(400)
+    expect(response.body.name).toEqual('ResourceNotFoundError')
+})
+
+test("should not send an activation for invalid email", async () => {
+    await request(app).post('/users/sendActivationEmail').send({ email: 'test.unactivatedgmail.com' }).expect(400)
+})
+
+
 test("Should get profile for user", async () => {
     await request(app)
         .get("/users/me")
@@ -122,9 +162,11 @@ test("Should get profile for user", async () => {
         .expect(200);
 });
 
+
 test("Should not get profile for user not connected", async () => {
     await request(app).get("/users/me").send().expect(401);
 });
+
 
 test("should delete account for user", async () => {
     const response = await request(app)
@@ -137,9 +179,11 @@ test("should delete account for user", async () => {
     expect(user).toBeNull();
 });
 
+
 test("should not delete account for user", async () => {
     await request(app).delete("/users/me").send().expect(401);
 });
+
 
 test("Should not upload avatar image", async () => {
     await request(app)
@@ -148,6 +192,7 @@ test("Should not upload avatar image", async () => {
         .attach("upload", "./tests/fixtures/coree-du-sud-ville.jpg")
         .expect(400);
 });
+
 
 test("Should upload avatar image", async () => {
     await request(app)
@@ -163,6 +208,7 @@ test("Should upload avatar image", async () => {
     expect(user.avatar).toEqual(expect.any(Buffer));
 });
 
+
 test("Should update username", async () => {
     const response = await request(app)
         .patch("/users/me")
@@ -174,6 +220,7 @@ test("Should update username", async () => {
 
     expect(response.body.name).toBe("matthias");
 });
+
 
 test("Should not update username", async () => {
     const response = await request(app)

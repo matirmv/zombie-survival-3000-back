@@ -5,7 +5,9 @@ const multer = require("multer");
 const sharp = require("sharp");
 const { sendActivationEmail, sendCancelationEmail } = require('../emails/account')
 const router = new express.Router();
-const {error} = require('../shared/errors')
+const { error } = require('../shared/errors')
+const  ResourceNotFoundError  = require('../shared/ResourceNotFoundError')
+
 
 router.post("/users", async (req, res) => {
     const user = new User(req.body);
@@ -13,7 +15,7 @@ router.post("/users", async (req, res) => {
     try {
         await user.save();
         const activationToken = user.generateActivationToken();
-        sendActivationEmail(user.email, user.name, activationToken)
+        await sendActivationEmail(user.email, user.name, activationToken)
         res.status(201).send(user);
     } catch (error) {
         res.status(400).send(error);
@@ -35,24 +37,40 @@ router.post("/users/login", async (req, res) => {
 
         res.status(200).send({ user, token });
     } catch (error) {
-        res.status(400).send({error:error.message});
+        res.status(400).send({ error: error.message });
     }
 });
 
 router.post("/users/activate", async (req, res) => {
-
     try {
-        const decodedToken = User.verifyActivationToken(req.body.token)
+        const decodedToken = await User.verifyActivationToken(req.body.token)
         const user = await User.findById(decodedToken._id)
         const activatedUser = await user.activateUser();
         const token = await user.generateAuthToken();
         res.status(200).send({ activatedUser, token });
+    } catch (err) {
+        res.status(400).send(err)
+    }
+})
+
+router.post('/users/sendActivationEmail', async (req, res) => {
+    try {
+        const user = await User.findOne({ email: req.body.email })
+        
+        if(!user){
+            throw new ResourceNotFoundError("User","email") 
+        }
+
+        const activationToken = user.generateActivationToken();
+        await sendActivationEmail(user.email, user.name, activationToken)
+
+        res.status(200).send()
+
     } catch (error) {
         res.status(400).send(error)
     }
-
-
 })
+
 router.post("/users/logout", auth, async (req, res) => {
     try {
         req.user.tokens = req.user.tokens.filter(
@@ -105,7 +123,7 @@ router.patch("/users/me", auth, async (req, res) => {
 router.delete("/users/me", auth, async (req, res) => {
     try {
         await req.user.remove();
-        sendCancelationEmail(req.user.email, req.user.name)
+        await sendCancelationEmail(req.user.email, req.user.name)
         res.send(req.user);
     } catch (error) {
         res.status(400).send(error);

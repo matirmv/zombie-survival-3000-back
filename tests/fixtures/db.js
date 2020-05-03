@@ -26,7 +26,8 @@ const userUnactivated = {
     activated: false
 };
 
-const activationTokenForUnactivated=jwt.sign({ _id: userUnactivatedId }, process.env.JWT_SECRET_EMAIL)
+const activationTokenForUnactivated=jwt.sign({ _id: userUnactivatedId }, process.env.JWT_SECRET_EMAIL,)
+const expiredActivationTokenForUnactivated=jwt.sign({ _id: userUnactivatedId }, process.env.JWT_SECRET_EMAIL,{ expiresIn: '0.1s' })
 
 const setupDatabase = async () => {
     await User.deleteMany();
@@ -40,5 +41,6 @@ module.exports = {
     userUnactivatedId,
     userUnactivated,
     activationTokenForUnactivated,
+    expiredActivationTokenForUnactivated,
     setupDatabase
 }

@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Task = require("../models/task");
 const { error } = require('../shared/errors')
+const { JsonWebTokenError } = require('../shared/JsonWebTokenError')
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -78,7 +79,7 @@ userSchema.methods.toJSON = function () {
 
 userSchema.methods.generateActivationToken = function () {
     const user = this
-    const activationToken = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET_EMAIL)
+    const activationToken = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET_EMAIL, { expiresIn: "24h" })
 
     return activationToken
 }
@@ -100,9 +101,19 @@ userSchema.methods.activateUser = async function () {
     return user
 }
 
-userSchema.statics.verifyActivationToken = function (activationToken) {
-    const verifiedToken = jwt.verify(activationToken, process.env.JWT_SECRET_EMAIL);
-    return verifiedToken
+userSchema.statics.verifyActivationToken = async function (activationToken) {
+    return jwt.verify(activationToken, process.env.JWT_SECRET_EMAIL, function (err, decoded) {
+
+        if (err && err.name === "TokenExpiredError") {
+            throw new JsonWebTokenError('USER_ACTIVATION_TOKEN_EXPIRED')
+        }
+        else if (err && err.name === ("JsonWebTokenError" || "NotBeforeError")) {
+            throw new JsonWebTokenError('USER_TOKEN_ERROR')
+        }
+        else {
+            return decoded
+        }
+    });
 }
 
 userSchema.statics.findByCredentials = async (email, password) => {
