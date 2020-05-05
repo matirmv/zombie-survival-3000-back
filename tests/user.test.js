@@ -1,11 +1,7 @@
 const request = require("supertest");
 const app = require("../src/app");
 const User = require("../src/models/user");
-const jwt = require('jsonwebtoken')
 const { userActivatedId, userActivated, activationTokenForUnactivated, setupDatabase, expiredActivationTokenForUnactivated } = require("./fixtures/db");
-const { error } = require("../src/shared/errors")
-const  ResourceNotFoundError = require("../src/shared/ResourceNotFoundError")
-
 beforeEach(setupDatabase);
 
 
@@ -73,7 +69,7 @@ test("Should not login activated user if bad credentials provided", async () => 
         })
         .expect(400);
 
-    expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
+    expect(response.body.type).toEqual('USER_INCORRECT_CREDENTIALS')
 });
 
 
@@ -81,19 +77,23 @@ test("Should not login activated user if bad credentials provided (good", async 
     let response;
 
     response = await userLoginShouldFail('test.activat@gmail.com', "Matthias12")
-    expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
+    expect(response.body.type).toEqual('USER_INCORRECT_CREDENTIALS')
 
     response = await userLoginShouldFail('test.activat@gmail.com', "Matthias123")
-    expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
+    expect(response.body.type).toEqual('USER_INCORRECT_CREDENTIALS')
+
 
     response = await userLoginShouldFail("", "")
-    expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
+    expect(response.body.type).toEqual('USER_INCORRECT_CREDENTIALS')
+
 
     response = await userLoginShouldFail("test.activat@gmail.com", "")
-    expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
+    expect(response.body.type).toEqual('USER_INCORRECT_CREDENTIALS')
+
 
     response = await userLoginShouldFail("test.activat@gmail.com", "")
-    expect(response.body.error).toEqual(error.USER_INCORRECT_CREDENTIALS)
+    expect(response.body.type).toEqual('USER_INCORRECT_CREDENTIALS')
+
 
 });
 
@@ -106,7 +106,7 @@ test("Should not login unactivated user", async () => {
             password: "Matthias123",
         }).expect(400)
 
-    expect(response.body.error).toEqual(error.USER_NOT_ACTIVATED)
+    expect(response.body.type).toEqual('USER_NOT_ACTIVATED')
 });
 
 
@@ -185,28 +185,28 @@ test("should not delete account for user", async () => {
 });
 
 
-test("Should not upload avatar image", async () => {
-    await request(app)
-        .post("/users/me/avatar")
-        .set("Authorization", `Bearer ${userActivated.tokens[0].token}`)
-        .attach("upload", "./tests/fixtures/coree-du-sud-ville.jpg")
-        .expect(400);
-});
+// test("Should not upload avatar image", async () => {
+//     await request(app)
+//         .post("/users/me/avatar")
+//         .set("Authorization", `Bearer ${userActivated.tokens[0].token}`)
+//         .attach("upload", "./tests/fixtures/coree-du-sud-ville.jpg")
+//         .expect(400);
+// });
 
 
-test("Should upload avatar image", async () => {
-    await request(app)
-        .post("/users/me/avatar")
-        .set("Authorization", `Bearer ${userActivated.tokens[0].token}`)
-        .attach(
-            "upload",
-            "./tests/fixtures/Why-is-the-world-obsessed-with-all-things-Korean.jpg"
-        )
-        .expect(200);
+// test("Should upload avatar image", async () => {
+//     await request(app)
+//         .post("/users/me/avatar")
+//         .set("Authorization", `Bearer ${userActivated.tokens[0].token}`)
+//         .attach(
+//             "upload",
+//             "./tests/fixtures/Why-is-the-world-obsessed-with-all-things-Korean.jpg"
+//         )
+//         .expect(200);
 
-    const user = await User.findById(userActivatedId);
-    expect(user.avatar).toEqual(expect.any(Buffer));
-});
+//     const user = await User.findById(userActivatedId);
+//     expect(user.avatar).toEqual(expect.any(Buffer));
+// });
 
 
 test("Should update username", async () => {

@@ -3,8 +3,8 @@ const validator = require("validator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Task = require("../models/task");
-const { error } = require('../shared/errors')
-const { JsonWebTokenError } = require('../shared/JsonWebTokenError')
+const JsonWebTokenError = require('../shared/JsonWebTokenError')
+const CustomError = require('../shared/CustomError')
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -77,12 +77,6 @@ userSchema.methods.toJSON = function () {
     return userObject;
 };
 
-userSchema.methods.generateActivationToken = function () {
-    const user = this
-    const activationToken = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET_EMAIL, { expiresIn: "24h" })
-
-    return activationToken
-}
 
 userSchema.methods.generateAuthToken = async function () {
     const user = this;
@@ -93,6 +87,20 @@ userSchema.methods.generateAuthToken = async function () {
 
     return token;
 };
+
+userSchema.methods.generateActivationToken = function () {
+    const user = this
+    const activationToken = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET_EMAIL, { expiresIn: "24h" })
+
+    return activationToken
+}
+
+userSchema.methods.generateResetPasswordToken = function () {
+    const user = this
+    const resetPasswordToken = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET_PASSWORD, { expiresIn: "24h" })
+
+    return resetPasswordToken
+}
 
 userSchema.methods.activateUser = async function () {
     const user = this;
@@ -124,7 +132,7 @@ userSchema.statics.findByCredentials = async (email, password) => {
     }
 
     if (!user || !isMatch) {
-        throw new Error(error.USER_INCORRECT_CREDENTIALS);
+        throw new CustomError('USER_INCORRECT_CREDENTIALS');
     }
 
     return user;
