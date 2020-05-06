@@ -109,8 +109,15 @@ userSchema.methods.activateUser = async function () {
     return user
 }
 
-userSchema.statics.verifyActivationToken = async function (activationToken) {
-    return jwt.verify(activationToken, process.env.JWT_SECRET_EMAIL, function (err, decoded) {
+userSchema.methods.resetPassword = async function (password) {
+    const user = this;
+    user.password = password;
+    await user.save();
+    return user
+}
+
+userSchema.statics.verifyToken = async function (activationToken, secret) {
+    return jwt.verify(activationToken, secret, function (err, decoded) {
 
         if (err && err.name === "TokenExpiredError") {
             throw new JsonWebTokenError('USER_ACTIVATION_TOKEN_EXPIRED')
@@ -123,6 +130,8 @@ userSchema.statics.verifyActivationToken = async function (activationToken) {
         }
     });
 }
+
+
 
 userSchema.statics.findByCredentials = async (email, password) => {
     const user = await User.findOne({ email });

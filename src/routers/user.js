@@ -3,7 +3,7 @@ const auth = require("../middleware/auth");
 const User = require("../models/user");
 const multer = require("multer");
 const sharp = require("sharp");
-const { sendActivationEmail, sendCancelationEmail } = require('../emails/account')
+const { sendActivationEmail, sendCancelationEmail,sendResetPasswordEmail } = require('../emails/account')
 const router = new express.Router();
 const { error } = require('../shared/errors')
 const ResourceNotFoundError = require('../shared/ResourceNotFoundError')
@@ -44,7 +44,7 @@ router.post("/users/login", async (req, res) => {
 
 router.post("/users/activate", async (req, res) => {
     try {
-        const decodedToken = await User.verifyActivationToken(req.body.token)
+        const decodedToken = await User.verifyToken(req.body.token,process.env.JWT_SECRET_EMAIL)
         const user = await User.findById(decodedToken._id)
         const activatedUser = await user.activateUser();
         const token = await user.generateAuthToken();
@@ -72,8 +72,8 @@ router.post('/users/sendActivationEmail', async (req, res) => {
     }
 })
 
-router.post('/users/resetPassword', async (req, res) => {
-    try {
+router.post('/users/sendResetPasswordEmail', async (req, res) => {
+    try {        
         const user = await User.findOne({ email: req.body.email })
 
         if (!user) {
@@ -84,8 +84,19 @@ router.post('/users/resetPassword', async (req, res) => {
         await sendResetPasswordEmail(user.email, user.name, resetPasswordToken)
 
         res.status(200).send()
-    } catch (error) {
+    } catch (error) {        
         res.status(400).send(error)
+    }
+})
+
+router.post("/users/resetPassword", async (req, res) => {
+    try {
+        const decodedToken = await User.verifyToken(req.body.token,process.env.JWT_SECRET_PASSWORD)
+        const user = await User.findById(decodedToken._id)
+        await user.resetPassword(req.body.password);
+        res.status(200).send();
+    } catch (err) {
+        res.status(400).send(err)
     }
 })
 

@@ -23,8 +23,8 @@ const sendResetPasswordEmail = async (email, name, activationToken) => {
             from: "zsurvival3000@gmail.com",
             subject: "Reinitialisation du mot de passe",
             html: `<p>Halala ${name}, Ca serait bien de l'écrire ou de s'en souvenir.</p>
-                <p>Tu n'es pas sans savoir que la fin du monde s'annonce rude. Clique sur le lien pour nous reinitialiser ton mot de passe :</p><br>
-                <a href="${process.env.FRONT_URL}/account/resetPassword?resetPasswordToken=${activationToken}">C'est promis, je ne l'oublierai plus !</a>
+                <p>Tu n'es pas sans savoir que la fin du monde s'annonce rude. Clique sur le lien pour reinitialiser ton mot de passe :</p><br>
+                <a href="${process.env.FRONT_URL}/account/reset-password?resetPasswordToken=${activationToken}">C'est promis, je ne l'oublierai plus !</a>
                 `
         })
 
