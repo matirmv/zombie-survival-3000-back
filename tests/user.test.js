@@ -5,7 +5,7 @@ const { userActivatedId, userActivated, activationTokenForUnactivated, setupData
 beforeEach(setupDatabase);
 
 
-test("Should signup a new user", async () => {
+it("Should signup a new user", async () => {
     const response = await request(app)
         .post("/users")
         .send({
