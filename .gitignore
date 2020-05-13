@@ -2,3 +2,4 @@ node_modules/
 config
 .vscode
 coverage
+!src/shared/config
