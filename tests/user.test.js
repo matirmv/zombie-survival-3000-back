@@ -1,5 +1,6 @@
 const request = require("supertest");
 const app = require("../src/app");
+const cookieParser = require('cookie-parser')
 const User = require("../src/models/user");
 const { userActivatedId, userActivated, activationTokenForUnactivated, setupDatabase, expiredActivationTokenForUnactivated } = require("./fixtures/db");
 beforeEach(setupDatabase);
@@ -55,8 +56,11 @@ test("Should login activated user", async () => {
         })
         .expect(200);
 
+    const cookie = response.headers['set-cookie'];
+    console.log(cookie);
+
+    console.log(cookieParser.JSONCookie(cookie[0]));
     const user = await User.findById(response.body.user._id);
-    expect(response.body.token).toBe(user.tokens[1].token);
 });
 
 
@@ -157,7 +161,7 @@ test("should not send an activation for invalid email", async () => {
 test("Should get profile for user", async () => {
     await request(app)
         .get("/users/me")
-        .set("Authorization", `Bearer ${userActivated.tokens[0].token}`)
+        .set('Cookie', `auth_token=${userActivated.tokens[0].token}`)
         .send()
         .expect(200);
 });
@@ -171,7 +175,7 @@ test("Should not get profile for user not connected", async () => {
 test("should delete account for user", async () => {
     const response = await request(app)
         .delete("/users/me")
-        .set("Authorization", `Bearer ${userActivated.tokens[0].token}`)
+        .set('Cookie', `auth_token=${userActivated.tokens[0].token}`)
         .send()
         .expect(200);
 
@@ -187,7 +191,7 @@ test("should not delete account for user", async () => {
 test("Should update username", async () => {
     const response = await request(app)
         .patch("/users/me")
-        .set("Authorization", `Bearer ${userActivated.tokens[0].token}`)
+        .set('Cookie', `auth_token=${userActivated.tokens[0].token}`)
         .send({
             name: "matthias",
         })
@@ -200,10 +204,17 @@ test("Should update username", async () => {
 test("Should not update username", async () => {
     const response = await request(app)
         .patch("/users/me")
-        .set("Authorization", `Bearer ${userActivated.tokens[0].token}`)
         .send({
             names: "fezfe",
         })
+        .expect(401);
+});
+
+test("Should not update username with bad request", async () => {
+    const response = await request(app)
+        .patch("/users/me")
+        .set('Cookie', `auth_token=${userActivated.tokens[0].token}`)
+        .send()
         .expect(400);
 });
 
