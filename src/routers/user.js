@@ -9,9 +9,11 @@ const CustomError = require('../shared/CustomError')
 const { cookieConfig } = require('../shared/config/cookieConfig')
 
 router.post("/users", async (req, res) => {
-    const user = new User(req.body);
-
-    try {
+    try {        
+        if (req.body==={}) {
+            throw new Error()
+        }
+        const user = new User(req.body);
         await user.save();
         const activationToken = user.generateActivationToken();
         await sendActivationEmail(user.email, user.name, activationToken)
@@ -102,20 +104,21 @@ router.post("/users/resetPassword", async (req, res) => {
     }
 })
 
-router.post("/users/logout", auth, async (req, res) => {
+router.post("/users/me/logout", auth, async (req, res) => {
     try {
         req.user.tokens = req.user.tokens.filter(
             token => token.token !== req.token
         );
+        
         await req.user.save();
 
-        res.send();
+        res.status(200).send();
     } catch (error) {
         res.status(500).send();
     }
 });
 
-router.post("/users/logoutAll", auth, async (req, res) => {
+router.post("/users/me/logoutAll", auth, async (req, res) => {
     try {
         req.user.tokens = [];
         await req.user.save();
@@ -136,12 +139,10 @@ router.patch("/users/me", auth, async (req, res) => {
         return res.status(400).send({ error: "Invalid update !" });
     }
 
-    const acceptedFields = ["name", "age", "email", "password"];
+    const acceptedFields = ["name", "age"];
     const validOperation = updateFields.every(field =>
         acceptedFields.includes(field)
     );
-    console.log(updateFields);
-
 
     if (!validOperation) {
         return res.status(400).send({ error: "Invalid update !" });
@@ -165,19 +166,6 @@ router.delete("/users/me", auth, async (req, res) => {
         res.send(req.user);
     } catch (error) {
         res.status(400).send(error);
-    }
-});
-
-const upload = multer({
-    limits: {
-        fileSize: 1000000
-    },
-    fileFilter(req, file, cb) {
-        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-            return cb(new Error("Please select an image"));
-        }
-
-        cb(null, true);
     }
 });
 

@@ -85,14 +85,14 @@ userSchema.methods.generateAuthToken = async function () {
 
 userSchema.methods.generateActivationToken = function () {
     const user = this
-    const activationToken = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET_EMAIL, { expiresIn: "24h" })
+    const activationToken = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET_EMAIL, { expiresIn: "900s" })
 
     return activationToken
 }
 
 userSchema.methods.generateResetPasswordToken = function () {
     const user = this
-    const resetPasswordToken = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET_PASSWORD, { expiresIn: "24h" })
+    const resetPasswordToken = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET_PASSWORD, { expiresIn: "900s" })
 
     return resetPasswordToken
 }
