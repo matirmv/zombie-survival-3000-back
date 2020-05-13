@@ -184,31 +184,6 @@ test("should not delete account for user", async () => {
     await request(app).delete("/users/me").send().expect(401);
 });
 
-
-// test("Should not upload avatar image", async () => {
-//     await request(app)
-//         .post("/users/me/avatar")
-//         .set("Authorization", `Bearer ${userActivated.tokens[0].token}`)
-//         .attach("upload", "./tests/fixtures/coree-du-sud-ville.jpg")
-//         .expect(400);
-// });
-
-
-// test("Should upload avatar image", async () => {
-//     await request(app)
-//         .post("/users/me/avatar")
-//         .set("Authorization", `Bearer ${userActivated.tokens[0].token}`)
-//         .attach(
-//             "upload",
-//             "./tests/fixtures/Why-is-the-world-obsessed-with-all-things-Korean.jpg"
-//         )
-//         .expect(200);
-
-//     const user = await User.findById(userActivatedId);
-//     expect(user.avatar).toEqual(expect.any(Buffer));
-// });
-
-
 test("Should update username", async () => {
     const response = await request(app)
         .patch("/users/me")
