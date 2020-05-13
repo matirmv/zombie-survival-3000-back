@@ -33,9 +33,9 @@ router.post("/users/login", async (req, res) => {
         }
 
         const token = await user.generateAuthToken();
-        
+
         res.cookie('auth_token', token, cookieConfig)
-        res.status(200).send({ user});
+        res.status(200).send({ user });
     } catch (error) {
         res.status(400).send(error);
     }
@@ -49,7 +49,7 @@ router.post("/users/activate", async (req, res) => {
         const token = await user.generateAuthToken();
 
         res.cookie('auth_token', token, cookieConfig)
-        res.status(200).send({ activatedUser});
+        res.status(200).send({ activatedUser });
 
     } catch (err) {
         res.status(400).send(err)
@@ -131,10 +131,17 @@ router.get("/users/me", auth, async (req, res) => {
 
 router.patch("/users/me", auth, async (req, res) => {
     const updateFields = Object.keys(req.body);
+
+    if (updateFields.length === 0) {
+        return res.status(400).send({ error: "Invalid update !" });
+    }
+
     const acceptedFields = ["name", "age", "email", "password"];
     const validOperation = updateFields.every(field =>
         acceptedFields.includes(field)
     );
+    console.log(updateFields);
+
 
     if (!validOperation) {
         return res.status(400).send({ error: "Invalid update !" });
