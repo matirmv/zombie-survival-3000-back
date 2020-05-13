@@ -57,9 +57,7 @@ test("Should login activated user", async () => {
         .expect(200);
 
     const cookie = response.headers['set-cookie'];
-    console.log(cookie);
 
-    console.log(cookieParser.JSONCookie(cookie[0]));
     const user = await User.findById(response.body.user._id);
 });
 
@@ -214,7 +212,7 @@ test("Should not update username with bad request", async () => {
     const response = await request(app)
         .patch("/users/me")
         .set('Cookie', `auth_token=${userActivated.tokens[0].token}`)
-        .send()
+        .send({})
         .expect(400);
 });
 
